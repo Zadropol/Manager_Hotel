@@ -25,6 +25,9 @@ namespace Hotel_Manager.API.Controllers
             _mapper = mapper;
         }
 
+        /// <summary>
+        /// Obtiene todas las reservas con filtros y paginación.
+        /// </summary>
         [HttpGet]
         public IActionResult GetAll([FromQuery] BookingQueryFilter filters)
         {
@@ -32,6 +35,10 @@ namespace Hotel_Manager.API.Controllers
             return Ok(bookings);
         }
 
+
+        /// <summary>
+        /// Crea una nueva reserva para un huésped.
+        /// </summary>
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] BookingDTO dto)
         {
@@ -40,6 +47,9 @@ namespace Hotel_Manager.API.Controllers
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
         }
 
+        /// <summary>
+        /// Obtiene una reserva por su ID.
+        /// </summary>
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -47,6 +57,9 @@ namespace Hotel_Manager.API.Controllers
             return Ok(booking);
         }
 
+        /// <summary>
+        /// Obtiene habitaciones disponibles en un rango de fechas.
+        /// </summary>
         [HttpGet("available")]
         public async Task<IActionResult> GetAvailableRooms(DateTime startDate, DateTime endDate)
         {

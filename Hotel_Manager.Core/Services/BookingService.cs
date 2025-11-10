@@ -19,7 +19,8 @@ namespace Hotel_Manager.Core.Services
         {
             _unitOfWork = unitOfWork;
         }
-        public async Task<PagedList<BookingEntity>> GetBookingsAsync(BookingQueryFilter filters)
+
+        public async Task<IEnumerable<BookingEntity>> GetBookingsAsync(BookingQueryFilter filters)
         {
             var bookings = await _unitOfWork.Bookings.GetBookingsAsync(filters);
             if (!bookings.Any())
@@ -50,7 +51,7 @@ namespace Hotel_Manager.Core.Services
             if (!availableRooms.Any(r => r.Id == booking.RoomId))
                 throw new BusinessException("La habitación no está disponible en esas fechas.");
 
-            booking.StatusId = 1; // Pendiente
+            booking.StatusId = 1;
             booking.TotalPrice = room.PricePerNight *
                 (decimal)(booking.CheckOutDate - booking.CheckInDate).TotalDays;
 
@@ -78,5 +79,15 @@ namespace Hotel_Manager.Core.Services
 
             return rooms;
         }
+
+
+        public IEnumerable<BookingEntity> GetBookings(BookingQueryFilter filters)
+        {
+            var bookings = _unitOfWork.Bookings.GetBookingsAsync(filters).Result;
+            if (!bookings.Any())
+                throw new BusinessException("No se encontraron reservas.");
+            return bookings;
+        }
+
     }
 }

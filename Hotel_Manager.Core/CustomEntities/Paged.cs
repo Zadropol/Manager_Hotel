@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Hotel_Manager.Core.CustomEntities
 {
-    public class Paged
+    public class Metadata
     {
         public int TotalCount { get; set; }
         public int PageSize { get; set; }

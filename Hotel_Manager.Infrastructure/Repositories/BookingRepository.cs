@@ -20,7 +20,7 @@ namespace Hotel_Manager.Infrastructure.Repositories
         {
             var reservedRooms = await _context.Bookings
                 .Where(b =>
-                    b.StatusId != 5 && // Cancelada
+                    b.StatusId != 5 &&
                     ((startDate >= b.CheckInDate && startDate < b.CheckOutDate) ||
                      (endDate > b.CheckInDate && endDate <= b.CheckOutDate)))
                 .Select(b => b.RoomId)
@@ -30,6 +30,7 @@ namespace Hotel_Manager.Infrastructure.Repositories
                 .Where(r => !reservedRooms.Contains(r.Id))
                 .ToListAsync();
         }
+
         public async Task<PagedList<BookingEntity>> GetBookingsAsync(BookingQueryFilter filters)
         {
             var query = _context.Bookings
@@ -49,7 +50,7 @@ namespace Hotel_Manager.Infrastructure.Repositories
             if (filters.EndDate.HasValue)
                 query = query.Where(b => b.CheckOutDate <= filters.EndDate.Value);
 
-            return PagedList<BookingEntity>.Create(query, filters.PageNumber, filters.PageSize);
+            return await PagedList<BookingEntity>.CreateAsync(query, filters.PageNumber, filters.PageSize);
         }
 
     }

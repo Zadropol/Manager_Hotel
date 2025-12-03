@@ -1,17 +1,23 @@
 using FluentValidation;
 using Hotel_Manager.Core.Interfaces;
+using Hotel_Manager.Core.Services;
 using Hotel_Manager.Infrastructure.Data;
 using Hotel_Manager.Infrastructure.Filters;
 using Hotel_Manager.Infrastructure.Mappings;
 using Hotel_Manager.Infrastructure.Repositories;
-using Hotel_Manager.Core.Services;
 using Hotel_Manager.Infrastructure.Validators;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Mvc.Versioning;
-using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
+using Microsoft.AspNetCore.Mvc.Versioning;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
+
+if (builder.Environment.IsDevelopment())
+{
+    builder.Configuration.AddUserSecrets<Program>();
+}
 
 // --------------------
 // ?? Configuración MVC + Filtros globales
@@ -30,9 +36,25 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddApiVersioning(options =>
 {
-    options.DefaultApiVersion = new ApiVersion(1, 0);
-    options.AssumeDefaultVersionWhenUnspecified = true;
+    // Muestra versiones soportadas en headers
     options.ReportApiVersions = true;
+
+    // Usa versión por defecto cuando no se especifica
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.DefaultApiVersion = new ApiVersion(1, 0);
+
+    // Tipos de versionamiento
+    options.ApiVersionReader = ApiVersionReader.Combine(
+        new UrlSegmentApiVersionReader(),                 // /api/v1/
+        new HeaderApiVersionReader("x-api-version"),      // header: x-api-version: 1.0
+        new QueryStringApiVersionReader("api-version")    // ?api-version=1.0
+    );
+});
+
+builder.Services.AddVersionedApiExplorer(options =>
+{
+    options.GroupNameFormat = "'v'VVV";
+    options.SubstituteApiVersionInUrl = true;
 });
 
 
@@ -67,6 +89,26 @@ app.UseSwaggerUI(options =>
     options.DocumentTitle = "Hotel Manager API";
     options.RoutePrefix = string.Empty; // Permite abrir Swagger directamente desde raíz
 });
+
+builder.Services.AddAuthentication("Bearer")
+    .AddJwtBearer("Bearer", options =>
+    {
+        options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(
+                System.Text.Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+        };
+    });
+
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 // --------------------
 // ?? Ejecución final

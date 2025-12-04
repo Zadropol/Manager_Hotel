@@ -6,9 +6,7 @@ using System.Threading.Tasks;
 
 namespace Hotel_Manager.Core.Entities
 {
-    public class User
+    internal class Security
     {
-        public string User { get; set; }
-        public string Password { get; set; }
     }
 }
